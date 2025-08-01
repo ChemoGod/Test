@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protocol Knowledge Test</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=Fira+Code:wght@400&display=swap');
+        :root {
+            --bg-dark: #0D1117; --bg-medium: #161B22; --bg-card: #21262D;
+            --text-primary: #C9D1D9; --text-secondary: #8B949E; --text-title: #FFFFFF;
+            --accent-primary: #58A6FF; --accent-secondary: #3FB950; --accent-danger: #F85149;
+            --border-color: #30363D;
+            --font-main: 'Inter', sans-serif;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: var(--font-main); background-color: var(--bg-dark); color: var(--text-primary); padding: 2rem; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 800px; margin: 0 auto; }
+
+        header { text-align: center; margin-bottom: 3rem; }
+        header h1 { font-size: 3rem; font-weight: 900; color: var(--text-title); letter-spacing: -2px; }
+        header h1 span { color: var(--accent-primary); }
+
+        #quiz-form { display: flex; flex-direction: column; gap: 2rem; }
+        .question-card { background-color: var(--bg-medium); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; }
+        .question-title { font-size: 1.3rem; font-weight: 700; color: var(--text-title); margin-bottom: 1.5rem; }
+        
+        .options-container { display: flex; flex-direction: column; gap: 1rem; }
+        .option {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            padding: 1rem; border-radius: 8px; cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex; align-items: center;
+        }
+        .option:hover { border-color: var(--accent-primary); }
+        .option.selected { border-color: var(--accent-primary); background-color: rgba(88, 166, 255, 0.1); }
+        
+        .option.correct { background-color: rgba(63, 185, 80, 0.2); border-color: var(--accent-secondary); }
+        .option.incorrect { background-color: rgba(248, 81, 73, 0.2); border-color: var(--accent-danger); }
+
+        .option input[type="radio"] { display: none; }
+        .option-label { margin-left: 1rem; flex-grow: 1; }
+        
+        #feedback { margin-top: 1rem; padding: 1rem; border-radius: 8px; font-size: 0.9rem; line-height: 1.6; display: none;}
+        #feedback.correct { background-color: var(--bg-secondary); color: var(--accent-secondary); border: 1px solid var(--accent-secondary); }
+        #feedback.incorrect { background-color: var(--bg-secondary); color: var(--accent-danger); border: 1px solid var(--accent-danger); }
+        #feedback strong { color: var(--text-title); }
+
+        .submit-button {
+            margin-top: 2rem; padding: 1rem 2rem; width: 100%;
+            background: var(--accent-primary); color: var(--text-title);
+            border: none; border-radius: 8px; font-size: 1.2rem;
+            font-weight: 700; cursor: pointer; transition: transform 0.2s ease;
+        }
+        .submit-button:hover { transform: scale(1.02); }
+
+        #results-card { display: none; text-align: center; }
+        .result-score { font-size: 4rem; font-weight: 900; color: var(--accent-secondary); }
+        .result-title { font-size: 1.5rem; font-weight: 700; color: var(--text-title); margin-bottom: 0.5rem; }
+        .result-feedback { color: var(--text-secondary); }
+        .result-feedback.excelente { color: var(--accent-secondary); font-weight: 600; }
+        .result-feedback.necesita-revision { color: var(--accent-danger); font-weight: 600; }
+
+    </style>
+</head>
+<body>
+
+    <div id="quiz-container" class="container">
+        <header>
+            <h1>Knowledge <span>Test</span></h1>
+        </header>
+
+        <form id="quiz-form">
+            <!-- Las preguntas serán inyectadas aquí por JavaScript -->
+            
+            <button type="submit" class="submit-button">Enviar Examen</button>
+        </form>
+
+        <div id="results-card" class="question-card">
+            <h2 class="result-title">Calificación Final</h2>
+            <div class="result-score">10/10</div>
+            <p class="result-feedback"></p>
+        </div>
+
+    </div>
+        <script>
+        const quizData = [
+            {
+                question: "¿Cuál es el principal activador molecular de la Síntesis de Proteínas Musculares (MPS) que debe ser suministrado a través de la dieta?",
+                options: ["Glucosa", "Leucina (un aminoácido)", "Colesterol", "Vitamina C"],
+                answer: 1, // El índice de la respuesta correcta (empieza en 0)
+                feedback: "Correcto. La Leucina actúa como una 'llave' que enciende la vía mTOR, iniciando la construcción de nuevo tejido muscular. Sin suficiente leucina, el anabolismo se detiene."
+            },
+            {
+                question: "¿Qué efecto directo tiene un alto consumo de azúcar refinado, especialmente antes de dormir, sobre la Hormona de Crecimiento (HGH)?",
+                options: ["La aumenta significativamente", "No tiene ningún efecto", "Suprime drásticamente su secreción", "Aumenta la sensibilidad a la HGH"],
+                answer: 2,
+                feedback: "Exacto. La HGH y la Insulina son antagónicas. Un pico de insulina por el azúcar 'apaga' la secreción de HGH. Es el mayor sabotaje nutricional al pulso de crecimiento nocturno."
+            },
+            {
+                question: "Para la producción de hormonas anabólicas como la Testosterona, ¿qué macronutriente es esencial como precursor molecular?",
+                options: ["Carbohidratos complejos", "Proteínas completas", "Grasas saludables (y el colesterol)", "Fibras solubles"],
+                answer: 2,
+                feedback: "Correcto. El colesterol, proveniente de las grasas, es la molécula base a partir de la cual el cuerpo sintetiza hormonas esteroideas, incluyendo la Testosterona."
+            },
+            {
+                question: "¿Qué combinación de micronutrientes es CRUCIAL para asegurar que el Calcio se deposite en los huesos y no en las arterias?",
+                options: ["Vitamina C y Hierro", "Sodio y Potasio", "Vitamina D3 y Vitamina K2", "Zinc y Magnesio"],
+                answer: 2,
+                feedback: "Así es. La Vitamina D3 aumenta la absorción del Calcio, y la K2 actúa como un 'GPS', activando proteínas (como la Osteocalcina) que lo dirigen a la matriz ósea."
+            },
+            {
+                question: "En términos de biomecánica, ¿cuál es la señal principal que envían las Sentadillas pesadas para promover la densidad ósea?",
+                options: ["Estrés Metabólico", "Tensión por estiramiento", "Carga Axial", "Agotamiento de glucógeno"],
+                answer: 2,
+                feedback: "Perfecto. La Carga Axial (fuerza de compresión a lo largo del esqueleto) es la señal directa de la Ley de Wolff que estimula a las células óseas (osteoblastos) a construir más hueso."
+            },
+            {
+                question: "¿Qué tipo de entrenamiento es más efectivo para provocar un pico masivo de HGH a través de la acidosis láctica?",
+                options: ["Cardio de baja intensidad y larga duración", "Levantamientos máximos (1-3 reps) con descansos largos", "Estiramientos estáticos", "HIIT o series con descansos cortos e incompletos"],
+                answer: 3,
+                feedback: "Correcto. El estrés metabólico generado por la alta intensidad y los descansos cortos es una de las señales más potentes para la liberación aguda de Hormona de Crecimiento."
+            },
+            {
+                question: "Para maximizar el pulso nocturno de HGH, ¿cuál de estos alimentos deberías consumir justo antes de dormir?",
+                options: ["Un tazón de cereal con leche y azúcar", "Una porción de pollo con brócoli y aceite de oliva", "Un batido de frutas con miel", "Un panecillo dulce"],
+                answer: 1,
+                feedback: "Correcto. El pollo y el brócoli son bajos en carbohidratos y no provocarán un pico de insulina que suprima la HGH. Los aminoácidos y las grasas saludables son ideales antes de dormir."
+            },
+            {
+                question: "¿Qué alimento es una fuente primaria de Grasas Saludables y Colesterol, precursor de la testosterona?",
+                options: ["Manzana", "Pechuga de Pollo", "Yema de Huevo", "Arroz Blanco"],
+                answer: 2,
+                feedback: "Exacto. La yema de huevo es una fuente densa de colesterol dietético y grasas saturadas/monoinsaturadas, fundamentales para la producción hormonal."
+            },
+        ];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('quiz-form');
+            const resultsCard = document.getElementById('results-card');
+
+            // --- Cargar preguntas ---
+            quizData.forEach((item, index) => {
+                const questionCard = document.createElement('div');
+                questionCard.className = 'question-card';
+
+                let optionsHTML = '';
+                item.options.forEach((option, optionIndex) => {
+                    optionsHTML += `
+                        <div class="option">
+                            <input type="radio" id="q${index}_o${optionIndex}" name="question${index}" value="${optionIndex}">
+                            <label class="option-label" for="q${index}_o${optionIndex}">${option}</label>
+                        </div>`;
+                });
+
+                questionCard.innerHTML = `<h2 class="question-title">${index + 1}. ${item.question}</h2>
+                                          <div class="options-container">${optionsHTML}</div>
+                                          <div id="feedback${index}" class="feedback"></div>`;
+                form.insertBefore(questionCard, form.lastElementChild);
+            });
+
+            // --- Lógica de Interacción ---
+            form.addEventListener('click', e => {
+                if (e.target.matches('.option, .option-label')) {
+                    const parentOption = e.target.closest('.option');
+                    const radio = parentOption.querySelector('input[type="radio"]');
+                    if (radio) {
+                        radio.checked = true;
+                        
+                        // Resaltar selección
+                        const optionsInCard = parentOption.closest('.options-container').querySelectorAll('.option');
+                        optionsInCard.forEach(opt => opt.classList.remove('selected'));
+                        parentOption.classList.add('selected');
+                    }
+                }
+            });
+
+            form.addEventListener('submit', e => {
+                e.preventDefault();
+                let score = 0;
+
+                quizData.forEach((item, index) => {
+                    const optionsContainer = document.querySelector(`input[name="question${index}"]`).closest('.options-container');
+                    const selectedOption = optionsContainer.querySelector(`input[name="question${index}"]:checked`);
+                    const feedbackEl = document.getElementById(`feedback${index}`);
+                    
+                    optionsContainer.querySelectorAll('.option').forEach(opt => opt.style.pointerEvents = 'none'); // Desactivar opciones
+                    
+                    if (selectedOption) {
+                        const answer = parseInt(selectedOption.value);
+                        const selectedDiv = selectedOption.closest('.option');
+                        
+                        if (answer === item.answer) {
+                            score++;
+                            selectedDiv.classList.add('correct');
+                            feedbackEl.innerHTML = `<strong>Explicación:</strong> ${item.feedback}`;
+                            feedbackEl.className = 'feedback correct';
+                        } else {
+                            selectedDiv.classList.add('incorrect');
+                            feedbackEl.innerHTML = `<strong>Respuesta Incorrecta. Explicación:</strong> ${item.feedback}`;
+                            feedbackEl.className = 'feedback incorrect';
+                            
+                            // Resaltar la correcta
+                             optionsContainer.querySelectorAll('.option')[item.answer].classList.add('correct');
+                        }
+                         feedbackEl.style.display = 'block';
+                    }
+                });
+                
+                // Mostrar resultados
+                document.querySelector('.submit-button').style.display = 'none';
+                resultsCard.style.display = 'block';
+                resultsCard.querySelector('.result-score').textContent = `${score} / ${quizData.length}`;
+                
+                const percentage = (score / quizData.length) * 100;
+                const feedbackP = resultsCard.querySelector('.result-feedback');
+                if (percentage >= 80) {
+                    feedbackP.textContent = "Excelente. Has internalizado los principios clave del protocolo.";
+                    feedbackP.className = "result-feedback excelente";
+                } else if (percentage >= 50) {
+                     feedbackP.textContent = "Buen trabajo. Hay algunos conceptos que necesitan un repaso para maximizar resultados.";
+                     feedbackP.className = "result-feedback";
+                } else {
+                    feedbackP.textContent = "Es necesario revisar a fondo el documento. Muchos conceptos clave no han sido asimilados.";
+                    feedbackP.className = "result-feedback necesita-revision";
+                }
+
+                resultsCard.scrollIntoView({ behavior: 'smooth' });
+            });
+        });
+    </script>
+</body>
+</html>
